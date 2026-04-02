@@ -1,6 +1,21 @@
 'use client';
 
 import { motion } from 'framer-motion';
+import ResponseMetadata from './ResponseMetadata';
+
+/* ── Parse <mafe-meta> block out of AI content ──────────────── */
+function parseContent(raw) {
+  if (!raw) return { text: '', meta: null };
+  const match = raw.match(/<mafe-meta>\s*([\s\S]*?)\s*<\/mafe-meta>/);
+  if (!match) return { text: raw.trim(), meta: null };
+  const text = raw.slice(0, match.index).trim();
+  try {
+    const meta = JSON.parse(match[1]);
+    return { text, meta };
+  } catch {
+    return { text, meta: null };
+  }
+}
 
 /* ── Emergency banner ───────────────────────────────────────── */
 function EmergencyBanner() {
@@ -50,25 +65,28 @@ function ImagePreview({ url, alt }) {
 
 /* ── MAFE message (left) ────────────────────────────────────── */
 function MafeMessage({ content }) {
-  const isEmergency = /⚠️|emergency|call.*911|call.*108|call.*112|call.*192/i.test(content);
+  const { text, meta } = parseContent(content);
+  const isEmergency = /⚠️|emergency|call.*911|call.*108|call.*112|call.*192/i.test(text);
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 6 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.25 }}
-      className="flex items-end gap-2 mb-4"
+      className="flex items-start gap-2 mb-5"
     >
       {/* Avatar */}
-      <div className="w-7 h-7 rounded-full bg-brand flex items-center justify-center flex-shrink-0 mb-0.5">
+      <div className="w-7 h-7 rounded-full bg-brand flex items-center justify-center flex-shrink-0 mt-0.5">
         <svg width="12" height="12" viewBox="0 0 18 18" fill="none">
           <path d="M9 2v14M2 9h14" stroke="white" strokeWidth="2.5" strokeLinecap="round"/>
         </svg>
       </div>
 
-      <div className="max-w-[85%] sm:max-w-[70%]">
+      <div className="max-w-[85%] sm:max-w-[72%]">
         {isEmergency && <EmergencyBanner />}
-        <div className={`px-4 py-3 rounded-2xl rounded-bl-sm shadow-sm text-sm leading-relaxed
+
+        {/* Main response bubble */}
+        <div className={`px-4 py-3 rounded-2xl rounded-tl-sm shadow-sm text-sm leading-relaxed
           ${isEmergency
             ? 'bg-red-50 border border-red-200 text-red-900'
             : 'bg-white border border-warm-200 text-warm-900'
@@ -76,9 +94,12 @@ function MafeMessage({ content }) {
         >
           <div
             className="prose-mafe"
-            dangerouslySetInnerHTML={{ __html: renderMarkdown(content) }}
+            dangerouslySetInnerHTML={{ __html: renderMarkdown(text) }}
           />
         </div>
+
+        {/* Metadata — only when streaming is complete (meta exists) */}
+        {meta && <ResponseMetadata meta={meta} />}
       </div>
     </motion.div>
   );
@@ -86,18 +107,23 @@ function MafeMessage({ content }) {
 
 /* ── User message (right) ───────────────────────────────────── */
 function UserMessage({ content, imageUrl }) {
+  // User messages may be an array (multimodal) — extract text
+  const text = Array.isArray(content)
+    ? content.find(c => c.type === 'text')?.text ?? ''
+    : content;
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 6 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.25 }}
-      className="flex justify-end mb-4"
+      className="flex justify-end mb-5"
     >
       <div className="max-w-[85%] sm:max-w-[70%]">
         {imageUrl && <ImagePreview url={imageUrl} alt="Your photo" />}
-        {content && (
-          <div className="px-4 py-3 bg-brand text-white rounded-2xl rounded-br-sm text-sm leading-relaxed">
-            {content}
+        {text && (
+          <div className="px-4 py-3 bg-brand text-white rounded-2xl rounded-tr-sm text-sm leading-relaxed">
+            {text}
           </div>
         )}
       </div>
@@ -108,33 +134,22 @@ function UserMessage({ content, imageUrl }) {
 /* ── Main export ────────────────────────────────────────────── */
 export default function Message({ message }) {
   if (message.role === 'user') {
-    return (
-      <UserMessage
-        content={message.content}
-        imageUrl={message.imageUrl}
-      />
-    );
+    return <UserMessage content={message.content} imageUrl={message.imageUrl} />;
   }
   return <MafeMessage content={message.content} />;
 }
 
 /* ── Minimal markdown renderer ──────────────────────────────── */
 function renderMarkdown(text) {
+  if (!text) return '';
   return text
-    // Bold
     .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-    // Italic
     .replace(/\*(.*?)\*/g, '<em>$1</em>')
-    // Blockquote
     .replace(/^> (.+)$/gm, '<blockquote class="border-l-2 border-brand/30 pl-3 text-warm-600 italic my-1">$1</blockquote>')
-    // H3
     .replace(/^### (.+)$/gm, '<h3>$1</h3>')
-    // Unordered list items
     .replace(/^[-•] (.+)$/gm, '<li>$1</li>')
     .replace(/(<li>.*<\/li>)/gs, '<ul>$1</ul>')
-    // Numbered list
     .replace(/^\d+\. (.+)$/gm, '<li>$1</li>')
-    // Newlines to paragraphs
     .split(/\n\n+/)
     .map(block => block.startsWith('<') ? block : `<p>${block.replace(/\n/g, '<br/>')}</p>`)
     .join('');
