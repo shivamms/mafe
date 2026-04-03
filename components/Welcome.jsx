@@ -9,7 +9,7 @@ const SUGGESTIONS = [
 
 export default function Welcome({ onSuggestion }) {
   return (
-    <div className="flex flex-col items-center justify-center h-full px-6 py-12 text-center">
+    <div className="flex flex-col items-center justify-center min-h-full px-6 py-10 text-center overflow-y-auto">
       {/* Logo */}
       <div className="w-16 h-16 rounded-2xl bg-brand flex items-center justify-center mb-5 shadow-lg shadow-brand/20">
         <svg width="28" height="28" viewBox="0 0 18 18" fill="none">

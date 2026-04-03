@@ -66,7 +66,9 @@ function ImagePreview({ url, alt }) {
 /* ── MAFE message (left) ────────────────────────────────────── */
 function MafeMessage({ content }) {
   const { text, meta } = parseContent(content);
-  const isEmergency = /⚠️|emergency|call.*911|call.*108|call.*112|call.*192/i.test(text);
+  const isEmergency = meta
+    ? meta.urgency === 'emergency'
+    : /⚠️.*emergency|call.*(?:911|108|112|192)/i.test(text);
 
   return (
     <motion.div

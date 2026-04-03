@@ -5,7 +5,7 @@ export const metadata = {
   description: 'Free multilingual medical information in your language. Ask about symptoms, conditions, and when to see a doctor.',
   manifest: '/manifest.json',
   themeColor: '#0d9488',
-  viewport: 'width=device-width, initial-scale=1, maximum-scale=1',
+  viewport: 'width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',

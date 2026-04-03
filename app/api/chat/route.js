@@ -17,7 +17,7 @@ export async function POST(req) {
       return new Response(JSON.stringify({ error: 'Invalid messages' }), { status: 400 });
     }
 
-    const result = streamText({
+    const result = await streamText({
       model: anthropic('claude-sonnet-4-6'),
       system: buildSystemPrompt(userContext),
       messages,

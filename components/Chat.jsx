@@ -47,7 +47,7 @@ export default function Chat() {
   const showWelcome = messages.length === 0;
 
   return (
-    <div className="flex flex-col h-screen bg-warm-50">
+    <div className="flex flex-col h-[100dvh] bg-warm-50">
       <DisclaimerBanner />
       <Header onNewChat={handleNewChat} hasMessages={messages.length > 0} />
 

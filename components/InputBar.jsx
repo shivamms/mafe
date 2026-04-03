@@ -98,7 +98,7 @@ export default function InputBar({ onSend, isLoading }) {
   const canSend = (text.trim() || imageFile) && !isLoading;
 
   return (
-    <div className="flex-shrink-0 bg-white border-t border-warm-200 px-4 pt-3 pb-4">
+    <div className="flex-shrink-0 bg-white border-t border-warm-200 px-4 pt-3 pb-4" style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 1rem)' }}>
       {/* Disclaimer */}
       <p className="text-center text-[11px] text-warm-600 mb-2">
         MAFE provides general health information only — not medical advice. Always consult a healthcare professional.
@@ -139,7 +139,7 @@ export default function InputBar({ onSend, isLoading }) {
           onKeyDown={onKeyDown}
           placeholder={recording ? 'Recording… tap mic to stop' : transcribing ? 'Transcribing…' : 'Describe your symptoms or ask a health question…'}
           rows={1}
-          className="flex-1 bg-transparent resize-none outline-none text-sm text-warm-900 placeholder-warm-400 py-1 leading-relaxed"
+          className="flex-1 bg-transparent resize-none outline-none text-[16px] sm:text-sm text-warm-900 placeholder-warm-400 py-1 leading-relaxed"
           disabled={recording || transcribing}
         />
 
